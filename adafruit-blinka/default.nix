@@ -5,6 +5,7 @@
 , adafruit-platformdetect
 , adafruit-pureio
 , pyftdi
+, setuptools-scm
 # , adafruit-circuitpython-typing
 }:
 
@@ -20,6 +21,12 @@ buildPythonPackage rec {
     sha256 = "1c551caa5962dc9475f0c131f6cfe700a53f5f2f7a017fd5967b40644d180ade";
   };
 
+  postPatch = ''
+    substituteInPlace requirements.txt \
+      --replace "adafruit-circuitpython-typing" ""
+    substituteInPlace setup.py \
+      --replace "\"adafruit-circuitpython-typing\"," ""
+  '';
   # # Package conditions to handle
   # # might have to sed setup.py and egg.info in patchPhase
   # # sed -i "s/<package>.../<package>/"
@@ -30,6 +37,7 @@ buildPythonPackage rec {
     adafruit-platformdetect
     adafruit-pureio
     pyftdi
+    setuptools-scm
     # adafruit-circuitpython-typing
   ];
 
