@@ -1,7 +1,12 @@
+#+TITLE: Using Adafruit FT232H Breakout in WSL
+#+STARTUP: inlineimages
 * Resources
-- https://learn.adafruit.com/circuitpython-on-any-computer-with-ft232h
-- https://learn.microsoft.com/en-us/windows/wsl/connect-usb
+- The board [[https://www.adafruit.com/product/2264][Adafruit FT232H Breakout - General Purpose USB to GPIO, SPI, I2C -  USB C & Stemma QT]]
+- The chip  [[https://ftdichip.com/products/ft232hq/][FT232H -- Hi-Speed Single Channel USB UART/FIFO IC]]
+- Examples https://learn.adafruit.com/circuitpython-on-any-computer-with-ft232h
+
 * WSL USB
+https://learn.microsoft.com/en-us/windows/wsl/connect-usb
 #+begin_src sh :results verbatim
   /mnt/c/Program\ Files/usbipd-win/usbipd.exe wsl list
 #+end_src
@@ -16,7 +21,7 @@
 
 Run as Windows administrator for busid corresponding to "USB Serial Converter"
 #+begin_src sh :eval no
-  usbipd wsl attach --busid 1-8
+  usbipd wsl attach --busid 1-9
 #+end_src
 
 #+begin_src sh :results verbatim
@@ -25,9 +30,9 @@ Run as Windows administrator for busid corresponding to "USB Serial Converter"
 
 #+RESULTS:
 : Bus 002 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
-: Bus 001 Device 003: ID 0403:6014 Future Technology Devices International, Ltd FT232H Single HS USB-UART/FIFO IC
+: Bus 001 Device 004: ID 0403:6014 Future Technology Devices International, Ltd FT232H Single HS USB-UART/FIFO IC
 : Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-* libusb
+* FTDI rules for libusb
 #+begin_src sh :results verbatim
   cat /etc/udev/rules.d/11-ftdi.rules
 #+end_src
@@ -39,3 +44,48 @@ Run as Windows administrator for busid corresponding to "USB Serial Converter"
 : SUBSYSTEM=="usb", ATTR{idVendor}=="0403", ATTR{idProduct}=="6010", GROUP="plugdev", MODE="0666"
 : SUBSYSTEM=="usb", ATTR{idVendor}=="0403", ATTR{idProduct}=="6014", GROUP="plugdev", MODE="0666"
 : SUBSYSTEM=="usb", ATTR{idVendor}=="0403", ATTR{idProduct}=="6015", GROUP="plugdev", MODE="0666"
+* FTDI test
+
+https://en.wikipedia.org/wiki/FTDI
+
+https://eblot.github.io/pyftdi/
+
+#+begin_src python :results verbatim
+  from pyftdi.ftdi import Ftdi
+  Ftdi().open_from_url('ftdi:///?')
+#+end_src
+
+Or use the script shipped with pyftdi:
+
+#+begin_src sh :results output
+  ftdi_urls.py --verbose
+#+end_src
+#+RESULTS:
+: Available interfaces:
+:   ftdi://ftdi:232h:1/1   (￿￿￿￿￿￿)
+:
+* Pinout
+https://learn.adafruit.com/circuitpython-on-any-computer-with-ft232h/pinouts
+* Adafruit Blinka
+This repository contains a selection of packages emulating the CircuitPython API for devices or hosts running CPython or MicroPython.
+https://github.com/adafruit/Adafruit_Blinka/
+* LED
+https://learn.adafruit.com/circuitpython-on-any-computer-with-ft232h/gpio
+#+begin_src python :results value
+  import time
+  # Adafruit Blinka modules
+  import board
+  import digitalio
+
+  led = digitalio.DigitalInOut(board.C0)
+  led.direction = digitalio.Direction.OUTPUT
+
+  for i in range(10):
+      led.value = True
+      time.sleep(0.5)
+      led.value = False
+      time.sleep(0.5)
+#+end_src
+
+#+RESULTS:
+: None
