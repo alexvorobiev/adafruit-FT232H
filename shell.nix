@@ -14,6 +14,7 @@ mkShell {
       (python3.pkgs.callPackage ./adafruit-blinka {  })
     ]))
     libusb1
+    usbutils # lsusb
     # usbip-linux
   ];
 }

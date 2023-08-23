@@ -1,5 +1,6 @@
-#+TITLE: Using Adafruit FT232H Breakout in WSL
+#+TITLE: Using Adafruit FT232H Breakout in NixOS WSL
 #+STARTUP: inlineimages
+#+last_modified: 2023-08-21 22:15:48 alex
 * Resources
 - The board [[https://www.adafruit.com/product/2264][Adafruit FT232H Breakout - General Purpose USB to GPIO, SPI, I2C -  USB C & Stemma QT]]
 - The chip  [[https://ftdichip.com/products/ft232hq/][FT232H -- Hi-Speed Single Channel USB UART/FIFO IC]]
@@ -13,32 +14,42 @@ https://learn.microsoft.com/en-us/windows/wsl/connect-usb
 
 #+RESULTS:
 : BUSID  VID:PID    DEVICE                                                        STATE
+: 1-2    0403:6014  USB Serial Converter                                          Not attached
 : 1-4    27c6:55b4  Goodix fingerprint SGX                                        Not attached
 : 1-7    174f:2426  Integrated Camera                                             Not attached
-: 1-9    0403:6014  USB Serial Converter                                          Not attached
 : 1-10   8087:0aaa  Intel(R) Wireless Bluetooth(R)                                Not attached
 :
 
+#+name: busid
+#+begin_src sh :results output
+  /mnt/c/Program\ Files/usbipd-win/usbipd.exe wsl list | \
+      grep 'USB Serial Converter' | \
+      sed -E 's/^([0-9]+-[0-9]+).*/\1/'
+#+end_src
+
+#+RESULTS: busid
+: 1-2
+
 Run as Windows administrator for busid corresponding to "USB Serial Converter"
-#+begin_src sh :eval no
-  usbipd wsl attach --busid 1-9
+#+begin_src sh :eval no :var busid=busid
+  usbipd wsl attach --busid $busid
 #+end_src
 
 #+begin_src sh :results verbatim
-  lsusb
+  lsusb | grep 0403
 #+end_src
 
 #+RESULTS:
-: Bus 002 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
-: Bus 001 Device 004: ID 0403:6014 Future Technology Devices International, Ltd FT232H Single HS USB-UART/FIFO IC
-: Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+: Bus 001 Device 002: ID 0403:6014 Future Technology Devices International, Ltd FT232H Single HS USB-UART/FIFO IC
+
 * FTDI rules for libusb
+Those needs to be added to =services.udev.extraRules=
+
 #+begin_src sh :results verbatim
-  cat /etc/udev/rules.d/11-ftdi.rules
+  grep 0403 /etc/udev/rules.d/99-local.rules
 #+end_src
 
 #+RESULTS:
-: # /etc/udev/rules.d/11-ftdi.rules
 : SUBSYSTEM=="usb", ATTR{idVendor}=="0403", ATTR{idProduct}=="6001", GROUP="plugdev", MODE="0666"
 : SUBSYSTEM=="usb", ATTR{idVendor}=="0403", ATTR{idProduct}=="6011", GROUP="plugdev", MODE="0666"
 : SUBSYSTEM=="usb", ATTR{idVendor}=="0403", ATTR{idProduct}=="6010", GROUP="plugdev", MODE="0666"
@@ -89,3 +100,8 @@ https://learn.adafruit.com/circuitpython-on-any-computer-with-ft232h/gpio
 
 #+RESULTS:
 : None
+* org configuration
+# Local Variables:
+# eval: (add-hook 'before-save-hook 'time-stamp nil t)
+# time-stamp-active: t
+# End:
